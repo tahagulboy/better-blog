@@ -1,6 +1,3 @@
-import Image from "next/image";
-import styles from "./page.module.css";
-
 export default function Home() {
   return (
     <>
@@ -90,7 +87,25 @@ export default function Home() {
   );
 }
 
-function Post({ category, title, date, description, link, imageSrc, imageAlt }: any): JSX.Element {
+interface PostProps {
+  category: string;
+  title: string;
+  date: string;
+  description: string;
+  link: string;
+  imageSrc: string;
+  imageAlt: string;
+}
+
+function Post({
+  category,
+  title,
+  date,
+  description,
+  link,
+  imageSrc,
+  imageAlt,
+}: PostProps): JSX.Element {
   return (
     <div className="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
       <div className="col p-4 d-flex flex-column position-static">
