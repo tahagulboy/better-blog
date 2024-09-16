@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 export default function Home() {
   return (
     <>
@@ -121,7 +123,7 @@ function Post({
         </a>
       </div>
       <div className="col-auto d-none d-lg-block">
-        <img src={imageSrc} alt={imageAlt} className="bd-placeholder-img" width="200" height="250" />
+        <Image src={imageSrc} alt={imageAlt} width={200} height={250} className="bd-placeholder-img" />
       </div>
     </div>
   );

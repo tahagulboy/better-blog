@@ -1,16 +1,46 @@
-// app/admin/categories/page.tsx
+'use client'; // Add this directive to mark this component as a client component
 
-"use client"; // Add this line at the top
+import { useEffect, useState } from 'react';
 
-import { useState } from 'react';
+// Define a type for category data
+interface Category {
+  CategoryID: string;
+  CategoryName: string;
+}
 
-const ManageCategories = () => {
-  const [categories, setCategories] = useState([
-    { id: 1, name: 'Technology' },
-  ]);
+function CategoriesPage() {
+  const [categories, setCategories] = useState<Category[]>([]);
 
-  const handleDelete = (id: number) => {
-    setCategories(categories.filter(category => category.id !== id));
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const response = await fetch('/api/categories');
+        if (!response.ok) {
+          throw new Error('Failed to fetch categories');
+        }
+        const data: Category[] = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    fetchCategories();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`/api/categories/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete category');
+      }
+      // Refresh the category list after deletion
+      setCategories(categories.filter(category => category.CategoryID !== id));
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -19,14 +49,22 @@ const ManageCategories = () => {
       <button className="btn btn-primary mb-3">Add New Category</button>
       <ul className="list-group">
         {categories.map(category => (
-          <li key={category.id} className="list-group-item d-flex justify-content-between align-items-center">
-            {category.name}
-            <button className="btn btn-danger btn-sm" onClick={() => handleDelete(category.id)}>Delete</button>
+          <li
+            key={category.CategoryID}
+            className="list-group-item d-flex justify-content-between align-items-center"
+          >
+            {category.CategoryName}
+            <button
+              className="btn btn-danger btn-sm"
+              onClick={() => handleDelete(category.CategoryID)}
+            >
+              Delete
+            </button>
           </li>
         ))}
       </ul>
     </div>
   );
-};
+}
 
-export default ManageCategories;
+export default CategoriesPage;
