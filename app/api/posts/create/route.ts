@@ -5,13 +5,13 @@ const uri = "mongodb+srv://tgulboy52:NsmtGX6Je7tQDstn@cluster0.qucfh.mongodb.net
 const client = new MongoClient(uri);
 
 interface PostData {
-  PostID: Number; // Include PostID in the interface
+  PostID: number; // Include PostID in the interface
   Title: string;
   Desc: string;
   Author: string;
   Date: string;
   Content: string;
-  CategoryID: Number; // Use `number` instead of `Number`
+  CategoryID: number; // Use `number` instead of `Number`
 }
 
 async function createPost(data: PostData) {

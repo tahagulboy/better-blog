@@ -4,7 +4,7 @@ import { Db, MongoClient } from 'mongodb';
 const uri = "mongodb+srv://tgulboy52:NsmtGX6Je7tQDstn@cluster0.qucfh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const client = new MongoClient(uri);
 
-async function getLastCategoryId(db: Db) {
+async function getLastCategoryId(db: Db): Promise<number> {
   // Find the last category sorted by categoryId in descending order
   const lastCategory = await db.collection('categories').find({}).sort({ categoryId: -1 }).limit(1).toArray();
 
@@ -19,7 +19,7 @@ async function getLastCategoryId(db: Db) {
   }
 }
 
-async function addCategory(db: Db, name: any) {
+async function addCategory(db: Db, name: string) {
   try {
     // Get the new category ID
     const lastCategoryId = await getLastCategoryId(db);
@@ -28,11 +28,11 @@ async function addCategory(db: Db, name: any) {
     const newCategoryId = lastCategoryId + 1; // Increment the last ID
     console.log('New Category ID:', newCategoryId); // Log the new category ID
 
-    const result = await db.collection('categories').insertOne({ 
+    const result = await db.collection('categories').insertOne({
       categoryId: newCategoryId, // Insert the new category ID
-      CategoryName: name 
+      CategoryName: name,
     });
-    
+
     return result;
   } catch (error) {
     console.error('Error adding category:', error);
@@ -40,34 +40,47 @@ async function addCategory(db: Db, name: any) {
   }
 }
 
-export async function POST(request: { json: () => PromiseLike<{ CategoryName: any; }> | { CategoryName: any; }; }) {
-  const { CategoryName } = await request.json();
-
-  if (!CategoryName) {
-    return new Response(JSON.stringify({ message: "Category name is required" }), {
-      status: 400,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-  }
-
-  let db;
+// Ensure the request parameter is of type NextRequest
+export async function POST(request: Request) {
   try {
-    await client.connect();
-    db = client.db('better-blog'); // Replace with your database name
+    // Parse JSON body from the request
+    const { CategoryName } = await request.json();
 
-    const result = await addCategory(db, CategoryName);
-    return new Response(JSON.stringify({ message: "Category created", result }), {
-      status: 201,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    // Validate CategoryName input
+    if (!CategoryName) {
+      return new Response(JSON.stringify({ message: "Category name is required" }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    }
+
+    let db;
+    try {
+      await client.connect();
+      db = client.db('better-blog'); // Replace with your database name
+
+      const result = await addCategory(db, CategoryName);
+      return new Response(JSON.stringify({ message: "Category created", result }), {
+        status: 201,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (error) {
+      console.error('Error creating category:', error); // Log the error for debugging
+      return new Response(JSON.stringify({ message: "Error creating category", error }), {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    }
   } catch (error) {
-    console.error('Error creating category:', error); // Log the error for debugging
-    return new Response(JSON.stringify({ message: "Error creating category", error }), {
-      status: 500,
+    console.error('Error parsing request:', error);
+    return new Response(JSON.stringify({ message: "Invalid JSON" }), {
+      status: 400,
       headers: {
         'Content-Type': 'application/json',
       },

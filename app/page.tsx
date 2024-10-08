@@ -10,13 +10,13 @@ interface PostData {
   Desc: string;
   Author: string;
   Date: string;
-  CategoryID: Number;
+  CategoryID: number;
   ImageSrc?: string;
   PostID: string; // Add PostID to uniquely identify each post
 }
 
 interface Category {
-  CategoryID: Number;
+  CategoryID: number;
   CategoryName: string;
 }
 
@@ -50,7 +50,7 @@ export default function Home() {
   }, []);
 
   // Function to get category name from CategoryID
-  const getCategoryName = (categoryID: Number): string => {
+  const getCategoryName = (categoryID: number): string => {
     const category = categories.find(cat => cat.CategoryID === categoryID);
     return category ? category.CategoryName : 'Unknown Category';
   };
