@@ -1,14 +1,14 @@
 import { MongoClient } from 'mongodb';
 
 // MongoDB connection details
-const uri = 'mongodb://localhost:27017';
+const uri = "mongodb+srv://tgulboy52:NsmtGX6Je7tQDstn@cluster0.qucfh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const client = new MongoClient(uri);
 
 async function getCategories() {
   try {
     await client.connect();
     const db = client.db('better-blog'); // Replace with your database name
-    const categories = await db.collection('Posts').find().toArray();
+    const categories = await db.collection('posts').find().toArray();
     return categories;
   } finally {
     await client.close();

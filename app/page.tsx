@@ -1,6 +1,60 @@
+"use client"; // Indicate that this is a Client Component
+
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+
+// Define PostData and Category interfaces
+interface PostData {
+  Title: string;
+  Desc: string;
+  Author: string;
+  Date: string;
+  CategoryID: Number;
+  ImageSrc?: string;
+  PostID: string; // Add PostID to uniquely identify each post
+}
+
+interface Category {
+  CategoryID: Number;
+  CategoryName: string;
+}
+
+interface SidebarPost {
+  href: string;
+  imageFill: string;
+  title: string;
+  date: string;
+}
 
 export default function Home() {
+  const [posts, setPosts] = useState<PostData[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]); // Store categories
+
+  // Fetch posts and categories
+  useEffect(() => {
+    async function fetchPosts() {
+      const response = await fetch('/api/posts');
+      const data = await response.json();
+      setPosts(data);
+    }
+
+    async function fetchCategories() {
+      const response = await fetch('/api/categories');
+      const data = await response.json();
+      setCategories(data);
+    }
+
+    fetchPosts();
+    fetchCategories();
+  }, []);
+
+  // Function to get category name from CategoryID
+  const getCategoryName = (categoryID: Number): string => {
+    const category = categories.find(cat => cat.CategoryID === categoryID);
+    return category ? category.CategoryName : 'Unknown Category';
+  };
+
   return (
     <>
       {/* Header and Navigation */}
@@ -60,24 +114,18 @@ export default function Home() {
         <div className="row">
           <div className="col-md-8">
             {/* Blog Posts */}
-            <Post
-              category="World"
-              title="An update"
-              date="Sep 10"
-              description="It's been a while since I posted..."
-              link="#"
-              imageSrc="/path/to/image1.jpg"
-              imageAlt="Image description"
-            />
-            <Post
-              category="Technology"
-              title="My new blog"
-              date="Sep 11"
-              description="I am starting a new blog!"
-              link="#"
-              imageSrc="/path/to/image2.jpg"
-              imageAlt="Image description"
-            />
+            {posts.map((post, index) => (
+              <Post
+                key={index}
+                category={getCategoryName(post.CategoryID)} // Get category name using the function
+                title={post.Title}
+                date={post.Date}
+                description={post.Desc}
+                postId={post.PostID} // Pass the PostID for dynamic routing
+                imageSrc={post.ImageSrc || '/path/to/placeholder.jpg'}
+                imageAlt={post.Title}
+              />
+            ))}
           </div>
           <div className="col-md-4">
             {/* Sidebar */}
@@ -89,25 +137,23 @@ export default function Home() {
   );
 }
 
-interface PostProps {
-  category: string;
-  title: string;
-  date: string;
-  description: string;
-  link: string;
-  imageSrc: string;
-  imageAlt: string;
-}
-
 function Post({
   category,
   title,
   date,
   description,
-  link,
+  postId, // Accept PostID for routing
   imageSrc,
   imageAlt,
-}: PostProps): JSX.Element {
+}: {
+  category: string;
+  title: string;
+  date: string;
+  description: string;
+  postId: string; // Type for postId
+  imageSrc: string;
+  imageAlt: string;
+}): JSX.Element {
   return (
     <div className="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
       <div className="col p-4 d-flex flex-column position-static">
@@ -115,12 +161,10 @@ function Post({
         <h3 className="mb-0">{title}</h3>
         <div className="mb-1 text-body-secondary">{date}</div>
         <p className="card-text mb-auto">{description}</p>
-        <a href={link} className="icon-link gap-1 icon-link-hover stretched-link">
+        {/* Use Link component for dynamic routing */}
+        <Link href={`/post/${postId}`} className="icon-link gap-1 icon-link-hover stretched-link">
           Continue reading
-          <svg className="bi" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-            <use xlinkHref="#chevron-right" />
-          </svg>
-        </a>
+        </Link>
       </div>
       <div className="col-auto d-none d-lg-block">
         <Image src={imageSrc} alt={imageAlt} width={200} height={250} className="bd-placeholder-img" />
@@ -130,33 +174,20 @@ function Post({
 }
 
 function Sidebar(): JSX.Element {
-  // Dummy data for the sidebar
-  const aboutText = "Customize this section to tell your visitors a little bit about your publication, writers, content, or something else entirely.";
-  const recentPosts = [
+  // Example static data; should be replaced with actual data
+  const recentPosts: SidebarPost[] = [
     { href: "#", imageFill: "#777", title: "Example blog post title", date: "January 15, 2024" },
     { href: "#", imageFill: "#777", title: "Another blog post title", date: "January 14, 2024" },
     { href: "#", imageFill: "#777", title: "Longer blog post title", date: "January 13, 2024" }
   ];
-  const archives = [
-    { href: "#", label: "March 2021" },
-    { href: "#", label: "February 2021" },
-    { href: "#", label: "January 2021" }
-  ];
-  const socialLinks = [
-    { href: "#", label: "GitHub" },
-    { href: "#", label: "Twitter" },
-    { href: "#", label: "Facebook" }
-  ];
 
   return (
     <div className="position-sticky" style={{ top: '2rem' }}>
-      {/* About Section */}
       <div className="p-4 mb-3 bg-body-tertiary rounded">
         <h4 className="fst-italic">About</h4>
-        <p className="mb-0">{aboutText}</p>
+        <p className="mb-0">This is a blog description.</p>
       </div>
 
-      {/* Recent Posts Section */}
       <div>
         <h4 className="fst-italic">Recent posts</h4>
         <ul className="list-unstyled">
@@ -174,26 +205,6 @@ function Sidebar(): JSX.Element {
             </li>
           ))}
         </ul>
-      </div>
-
-      {/* Archives Section */}
-      <div className="p-4">
-        <h4 className="fst-italic">Archives</h4>
-        <ol className="list-unstyled mb-0">
-          {archives.map((archive, index) => (
-            <li key={index}><a href={archive.href}>{archive.label}</a></li>
-          ))}
-        </ol>
-      </div>
-
-      {/* Social Links Section */}
-      <div className="p-4">
-        <h4 className="fst-italic">Social Links</h4>
-        <ol className="list-unstyled">
-          {socialLinks.map((link, index) => (
-            <li key={index}><a href={link.href}>{link.label}</a></li>
-          ))}
-        </ol>
       </div>
     </div>
   );

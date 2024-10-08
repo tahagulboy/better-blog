@@ -1,17 +1,41 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+// Define Category interface
+interface Category {
+  CategoryID: number;
+  CategoryName: string;
+}
+
 const AddPost = () => {
-  const [postID, setPostID] = useState(''); // Changed from _id to postID
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
   const [author, setAuthor] = useState('');
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState(''); // Date is handled as a string for now
   const [content, setContent] = useState('');
-  const [categoryID, setCategoryID] = useState('');
+  const [categoryID, setCategoryID] = useState<number | ''>(''); // CategoryID is an integer
+  const [categories, setCategories] = useState<Category[]>([]); // Categories fetched from the server
   const router = useRouter();
+
+  // Fetch categories on component mount
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const response = await fetch('/api/categories'); // Assuming this endpoint returns all categories
+        if (!response.ok) {
+          throw new Error('Failed to fetch categories');
+        }
+        const data: Category[] = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    }
+
+    fetchCategories();
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -20,13 +44,12 @@ const AddPost = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          PostID: postID, // Changed from _id to PostID
           Title: title,
           Desc: desc,
           Author: author,
-          Date: date,
+          Date: date, // Send date as a string
           Content: content,
-          CategoryID: categoryID,
+          CategoryID: categoryID, // CategoryID is an integer
         }),
       });
       if (!response.ok) {
@@ -43,32 +66,68 @@ const AddPost = () => {
       <h1>Add New Post</h1>
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
-          <label className="form-label">Post ID</label>
-          <input type="text" className="form-control" value={postID} onChange={(e) => setPostID(e.target.value)} required />
-        </div>
-        <div className="mb-3">
           <label className="form-label">Title</label>
-          <input type="text" className="form-control" value={title} onChange={(e) => setTitle(e.target.value)} required />
+          <input
+            type="text"
+            className="form-control"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
         </div>
         <div className="mb-3">
           <label className="form-label">Description</label>
-          <textarea className="form-control" value={desc} onChange={(e) => setDesc(e.target.value)} required />
+          <textarea
+            className="form-control"
+            value={desc}
+            onChange={(e) => setDesc(e.target.value)}
+            required
+          />
         </div>
         <div className="mb-3">
           <label className="form-label">Author</label>
-          <input type="text" className="form-control" value={author} onChange={(e) => setAuthor(e.target.value)} required />
+          <input
+            type="text"
+            className="form-control"
+            value={author}
+            onChange={(e) => setAuthor(e.target.value)}
+            required
+          />
         </div>
         <div className="mb-3">
           <label className="form-label">Date</label>
-          <input type="text" className="form-control" value={date} onChange={(e) => setDate(e.target.value)} required />
+          <input
+            type="date"
+            className="form-control"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            required
+          />
         </div>
         <div className="mb-3">
           <label className="form-label">Content</label>
-          <textarea className="form-control" value={content} onChange={(e) => setContent(e.target.value)} required />
+          <textarea
+            className="form-control"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            required
+          />
         </div>
         <div className="mb-3">
-          <label className="form-label">Category ID</label>
-          <input type="text" className="form-control" value={categoryID} onChange={(e) => setCategoryID(e.target.value)} required />
+          <label className="form-label">Category</label>
+          <select
+            className="form-control"
+            value={categoryID}
+            onChange={(e) => setCategoryID(parseInt(e.target.value) || '')}
+            required
+          >
+            <option value="">Select a category</option>
+            {categories.map((category) => (
+              <option key={category.CategoryID} value={category.CategoryID}>
+                {category.CategoryName}
+              </option>
+            ))}
+          </select>
         </div>
         <button type="submit" className="btn btn-primary">Add Post</button>
       </form>
