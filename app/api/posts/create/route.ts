@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
 
-const uri = "mongodb+srv://tgulboy52:NsmtGX6Je7tQDstn@cluster0.qucfh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0&tls=true";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.qucfh.mongodb.net/better-blog?retryWrites=true&w=majority&appName=Cluster0&tls=true`;
 const client = new MongoClient(uri);
 
 interface PostData {
